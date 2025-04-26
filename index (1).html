@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Казино игры</title>
+    <style>
+        /* Общие стили */
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+            overflow-x: hidden;
+            min-width: 320px;
+            touch-action: manipulation;
+        }
+        
+        /* Навигация */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #000;
+            padding: 10px 5px;
+            display: flex;
+            justify-content: space-around;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+        
+        .nav-btn {
+            background: black;
+            color: white;
+            border: 2px solid white;
+            padding: 8px 12px;
+            margin: 0 5px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+            flex-shrink: 0;
+        }
+        
+        .nav-btn:hover {
+            background: white;
+            color: black;
+        }
+        
+        /* Основной контент */
+        .content {
+            padding-top: 60px;
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .game-page {
+            display: none;
+            padding: 10px;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .game-page.active {
+            display: block;
+        }
+        
+        /* Общие стили игр */
+        .game-container {
+            background: #1e1e1e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .balance {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 14px;
+            color: #4CAF50;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .game-title {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        
+        .bet-controls {
+            text-align: center;
+            margin: 15px 0;
+            white-space: nowrap;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        select, .game-btn {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            background: #333;
+            color: white;
+            border: 1px solid #555;
+            margin: 5px 0;
+            width: 80%;
+            max-width: 200px;
+        }
+        
+        .game-btn {
+            background: #4CAF50;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .game-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+        
+        /* Панель результатов */
+        .result-panel {
+            position: relative;
+            width: 100%;
+            background: #333;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 15px;
+        }
+        
+        .result-item {
+            margin: 5px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        /* Стили для игры Да/Нет */
+        .yes-no-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .option {
+            font-size: 40px;
+            font-weight: bold;
+            padding: 0 15px;
+            text-shadow: 0 0 8px rgba(255,255,255,0.3);
+            white-space: nowrap;
+        }
+        
+        .arrow {
+            font-size: 50px;
+            transition: transform 2s ease-in-out;
+            margin: 0 10px;
+        }
+        
+        /* Стили для игр со слотами */
+        .slots-wrapper {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            overflow: hidden;
+        }
+        
+        .slots-area {
+            width: 100%;
+            overflow: auto;
+        }
+        
+        /* Стили для игры 5 слотов */
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 15px 0;
+            flex-wrap: nowrap;
+        }
+        
+        .slot {
+            width: 60px;
+            height: 60px;
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+        
+        .slot img {
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+        }
+        
+        /* Стили для игры 15 слотов */
+        .grid-game {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin: 15px 0;
+            justify-content: center;
+        }
+        
+        .grid-slot {
+            width: 100%;
+            height: 0;
+            padding-bottom: 100%;
+            background: #333;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .grid-slot img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            height: 85%;
+            object-fit: contain;
+        }
+        
+        /* Мини-слоты в панели результатов */
+        .mini-slots {
+            display: grid;
+            grid-template-columns: repeat(5, 20px);
+            gap: 4px;
+            margin: 8px 0;
+            justify-content: center;
+        }
+        
+        .mini-slot {
+            width: 20px;
+            height: 20px;
+            background: #444;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        
+        /* Адаптация для очень маленьких экранов */
+        @media screen and (max-width: 360px) {
+            .nav-btn {
+                padding: 6px 8px;
+                font-size: 12px;
+            }
+            
+            .option {
+                font-size: 30px;
+            }
+            
+            .arrow {
+                font-size: 40px;
+            }
+            
+            .slot {
+                width: 50px;
+                height: 50px;
+            }
+        }
+        
+        /* Адаптация для средних экранов */
+        @media screen and (min-width: 600px) {
+            .slot {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .grid-slot {
+                padding-bottom: 80px;
+            }
+            
+            .mini-slots {
+                grid-template-columns: repeat(5, 25px);
+                gap: 5px;
+            }
+            
+            .mini-slot {
+                width: 25px;
+                height: 25px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <button class="nav-btn" onclick="showGame('game1')">Да/Нет</button>
+        <button class="nav-btn" onclick="showGame('game2')">5 Слотов</button>
+        <button class="nav-btn" onclick="showGame('game3')">15 Слотов</button>
+    </nav>
+    
+    <!-- Основной контент -->
+    <div class="content">
+        <!-- Игра Да/Нет -->
+        <div id="game1" class="game-page active">
+            <div class="game-container">
+                <div class="balance">Баланс: <span id="globalBalance">10000</span> ₽</div>
+                
+                <h2 class="game-title">Игра "Да или Нет"</h2>
+                
+                <div class="bet-controls">
+                    <select id="bet1">
+                        <option value="500">500 ₽</option>
+                        <option value="1000">1000 ₽</option>
+                        <option value="1500">1500 ₽</option>
+                        <option value="2000">2000 ₽</option>
+                    </select>
+                    <button class="game-btn" onclick="playGame1()">Играть</button>
+                </div>
+                
+                <div class="yes-no-container">
+                    <div class="option">ДА</div>
+                    <div class="arrow" id="arrow">←</div>
+                    <div class="option">НЕТ</div>
+                </div>
+                
+                <div class="result-panel">
+                    <div class="result-item">Результат: <span id="result1">-</span></div>
+                    <div class="result-item">Умножение: <span id="multiplier1">-</span></div>
+                    <div class="result-item">Выигрыш: <span id="win1">-</span> ₽</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Игра 5 слотов -->
+        <div id="game2" class="game-page">
+            <div class="game-container">
+                <div class="balance">Баланс: <span id="globalBalance2">10000</span> ₽</div>
+                
+                <h2 class="game-title">Игра "5 Слотов"</h2>
+                
+                <div class="bet-controls">
+                    <select id="bet2">
+                        <option value="500">500 ₽</option>
+                        <option value="1000">1000 ₽</option>
+                        <option value="1500">1500 ₽</option>
+                        <option value="2000">2000 ₽</option>
+                    </select>
+                    <button class="game-btn" onclick="playGame2()">Играть</button>
+                </div>
+                
+                <div class="slots-wrapper">
+                    <div class="slots-area">
+                        <div class="slots-container">
+                            <div class="slot"><img src="0.png" id="slot1"></div>
+                            <div class="slot"><img src="0.png" id="slot2"></div>
+                            <div class="slot"><img src="0.png" id="slot3"></div>
+                            <div class="slot"><img src="0.png" id="slot4"></div>
+                            <div class="slot"><img src="0.png" id="slot5"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-panel">
+                    <div class="result-item">Комбинация:</div>
+                    <div class="mini-slots" id="mini-combination2">
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                    </div>
+                    <div class="result-item">Умножение: <span id="multiplier2">-</span></div>
+                    <div class="result-item">Выигрыш: <span id="win2">-</span> ₽</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Игра 15 слотов -->
+        <div id="game3" class="game-page">
+            <div class="game-container">
+                <div class="balance">Баланс: <span id="globalBalance3">10000</span> ₽</div>
+                
+                <h2 class="game-title">Игра "15 Слотов"</h2>
+                
+                <div class="bet-controls">
+                    <select id="bet3">
+                        <option value="500">500 ₽</option>
+                        <option value="1000">1000 ₽</option>
+                        <option value="1500">1500 ₽</option>
+                        <option value="2000">2000 ₽</option>
+                    </select>
+                    <button class="game-btn" onclick="playGame3()">Играть</button>
+                </div>
+                
+                <div class="slots-wrapper">
+                    <div class="slots-area">
+                        <div class="grid-game">
+                            <!-- Строка 1 -->
+                            <div class="grid-slot"><img src="0.png" id="cell1"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell2"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell3"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell4"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell5"></div>
+                            
+                            <!-- Строка 2 -->
+                            <div class="grid-slot"><img src="0.png" id="cell6"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell7"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell8"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell9"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell10"></div>
+                            
+                            <!-- Строка 3 -->
+                            <div class="grid-slot"><img src="0.png" id="cell11"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell12"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell13"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell14"></div>
+                            <div class="grid-slot"><img src="0.png" id="cell15"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="result-panel">
+                    <div class="result-item">Комбинации:</div>
+                    <div class="mini-slots" id="mini-combination3">
+                        <!-- Строка 1 -->
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        
+                        <!-- Строка 2 -->
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        
+                        <!-- Строка 3 -->
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                        <div class="mini-slot">-</div>
+                    </div>
+                    <div class="result-item">Умножение: <span id="multiplier3">-</span></div>
+                    <div class="result-item">Выигрыш: <span id="win3">-</span> ₽</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Глобальные переменные
+        let globalBalance = 10000;
+        const images = {
+            0: "0.png",
+            1: "1.png",
+            2: "2.png",
+            3: "3.png",
+            4: "4.png",
+            5: "5.png",
+            6: "6.png",
+            7: "7.png",
+            8: "8.png",
+            9: "9.png",
+            10: "10.png"
+        };
+        
+        // Состояния игр
+        const gameStates = {
+            game1: { spinning: false },
+            game2: { spinning: false },
+            game3: { spinning: false }
+        };
+        
+        // Обновить глобальный баланс
+        function updateGlobalBalance() {
+            document.querySelectorAll('[id^="globalBalance"]').forEach(el => {
+                el.textContent = globalBalance;
+            });
+        }
+        
+        // Показать выбранную игру
+        function showGame(gameId) {
+            document.querySelectorAll('.game-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(gameId).classList.add('active');
+        }
+        
+        // ===== Игра 1: Да/Нет =====
+        function playGame1() {
+            if (gameStates.game1.spinning) return;
+            
+            const bet = parseInt(document.getElementById('bet1').value);
+            
+            if (bet > globalBalance) {
+                alert('Недостаточно средств!');
+                return;
+            }
+            
+            gameStates.game1.spinning = true;
+            globalBalance -= bet;
+            updateGlobalBalance();
+            
+            const arrow = document.getElementById('arrow');
+            const spins = Math.floor(Math.random() * 5) + 3;
+            const result = Math.random() < 0.5 ? 0 : 180; // 0 - Да, 180 - Нет
+            const rotation = spins * 360 + result;
+            
+            arrow.style.transform = `rotate(${rotation}deg)`;
+            
+            arrow.addEventListener('transitionend', () => {
+                const win = result === 0;
+                const multiplier = win ? 2 : 0;
+                const winAmount = win ? bet * multiplier : 0;
+                
+                document.getElementById('result1').textContent = win ? 'Победа!' : 'Проигрыш';
+                document.getElementById('multiplier1').textContent = multiplier;
+                document.getElementById('win1').textContent = winAmount;
+                
+                if (win) {
+                    globalBalance += winAmount;
+                    updateGlobalBalance();
+                }
+                
+                gameStates.game1.spinning = false;
+            }, { once: true });
+        }
+        
+        // ===== Игра 2: 5 Слотов =====
+        function playGame2() {
+            if (gameStates.game2.spinning) return;
+            
+            const bet = parseInt(document.getElementById('bet2').value);
+            
+            if (bet > globalBalance) {
+                alert('Недостаточно средств!');
+                return;
+            }
+            
+            gameStates.game2.spinning = true;
+            globalBalance -= bet;
+            updateGlobalBalance();
+            
+            const slots = [
+                document.getElementById('slot1'),
+                document.getElementById('slot2'),
+                document.getElementById('slot3'),
+                document.getElementById('slot4'),
+                document.getElementById('slot5')
+            ];
+            
+            const duration = 1500;
+            const start = Date.now();
+            
+            function animate() {
+                if (Date.now() - start < duration) {
+                    const nums = Array.from({length: 5}, () => Math.floor(Math.random() * 11));
+                    nums.forEach((num, i) => slots[i].src = images[num]);
+                    requestAnimationFrame(animate);
+                } else {
+                    const finalNums = Array.from({length: 5}, () => Math.floor(Math.random() * 11));
+                    finalNums.forEach((num, i) => {
+                        slots[i].src = images[num];
+                        document.querySelectorAll('#mini-combination2 .mini-slot')[i].textContent = num;
+                    });
+                    calculateWin2(finalNums, bet);
+                    gameStates.game2.spinning = false;
+                }
+            }
+            
+            animate();
+        }
+        
+        function calculateWin2(numbers, bet) {
+            const counts = {};
+            numbers.forEach(num => counts[num] = (counts[num] || 0) + 1);
+            
+            const values = Object.values(counts);
+            let multiplier = 0;
+            
+            if (values.includes(5)) multiplier = 100;
+            else if (values.includes(4)) multiplier = 2.5;
+            else if (values.includes(3)) multiplier = 1.5;
+            else if (values.filter(v => v === 2).length === 2) multiplier = 2;
+            else if (values.includes(2)) multiplier = 1;
+            
+            const win = bet * multiplier;
+            globalBalance += win;
+            
+            document.getElementById('multiplier2').textContent = multiplier;
+            document.getElementById('win2').textContent = win;
+            updateGlobalBalance();
+        }
+        
+        // ===== Игра 3: 15 Слотов =====
+        function playGame3() {
+            if (gameStates.game3.spinning) return;
+            
+            const bet = parseInt(document.getElementById('bet3').value);
+            
+            if (bet > globalBalance) {
+                alert('Недостаточно средств!');
+                return;
+            }
+            
+            gameStates.game3.spinning = true;
+            globalBalance -= bet;
+            updateGlobalBalance();
+            
+            const cells = Array.from({length: 15}, (_, i) => document.getElementById(`cell${i+1}`));
+            const duration = 1500;
+            const start = Date.now();
+            
+            function animate() {
+                if (Date.now() - start < duration) {
+                    const nums = Array.from({length: 15}, () => Math.floor(Math.random() * 11));
+                    nums.forEach((num, i) => cells[i].src = images[num]);
+                    requestAnimationFrame(animate);
+                } else {
+                    const finalNums = Array.from({length: 15}, () => Math.floor(Math.random() * 11));
+                    finalNums.forEach((num, i) => {
+                        cells[i].src = images[num];
+                        document.querySelectorAll('#mini-combination3 .mini-slot')[i].textContent = num;
+                    });
+                    calculateWin3(finalNums, bet);
+                    gameStates.game3.spinning = false;
+                }
+            }
+            
+            animate();
+        }
+        
+        function calculateWin3(numbers, bet) {
+            let multiplier = 0.5;
+            let rowBonus = 0;
+            let colBonus = 0;
+            
+            // Проверка строк
+            for (let row = 0; row < 3; row++) {
+                const rowNums = numbers.slice(row * 5, row * 5 + 5);
+                const counts = {};
+                rowNums.forEach(num => counts[num] = (counts[num] || 0) + 1);
+                
+                Object.values(counts).forEach(count => {
+                    if (count === 2) rowBonus += 0.2;
+                    if (count === 3) rowBonus += 0.5;
+                    if (count === 4) rowBonus += 0.7;
+                    if (count === 5) rowBonus += 2;
+                });
+            }
+            
+            // Проверка столбцов
+            for (let col = 0; col < 5; col++) {
+                const colNums = [numbers[col], numbers[col + 5], numbers[col + 10]];
+                const counts = {};
+                colNums.forEach(num => counts[num] = (counts[num] || 0) + 1);
+                
+                if (Object.values(counts).includes(3)) colBonus += 2;
+                if (Object.values(counts).includes(2)) colBonus += 0.5;
+            }
+            
+            multiplier += rowBonus + colBonus;
+            const win = bet * multiplier;
+            globalBalance += win;
+            
+            document.getElementById('multiplier3').textContent = multiplier.toFixed(2);
+            document.getElementById('win3').textContent = win.toFixed(2);
+            updateGlobalBalance();
+        }
+        
+        // Инициализация
+        updateGlobalBalance();
+    </script>
+</body>
+</html>
